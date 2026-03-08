@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hypertension Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+    <div class="header-inner">
+        <div class="header-logo">
+            <div class="logo-icon">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <rect x="1" y="1" width="16" height="16" rx="3" fill="white" opacity="0.9"/>
+                    <rect x="4" y="4" width="4" height="4" rx="1" fill="#4f46e5"/>
+                    <rect x="10" y="4" width="4" height="4" rx="1" fill="#4f46e5"/>
+                    <rect x="4" y="10" width="4" height="4" rx="1" fill="#4f46e5"/>
+                    <rect x="10" y="10" width="4" height="4" rx="1" fill="#818cf8"/>
+                </svg>
+            </div>
+            <div>
+                <div class="logo-name">Hypertension Detection</div>
+                <div class="logo-sub">Advanced AI-Powered Cardiovascular Risk Assessment Platform</div>
+            </div>
+        </div>
+        <div class="header-badges">
+            <span class="hbadge">
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1L7 4H10L7.5 6L8.5 9.5L5.5 7.5L2.5 9.5L3.5 6L1 4H4L5.5 1Z" fill="currentColor"/></svg>
+                Medical Grade
+            </span>
+            <span class="hbadge hbadge-ai">
+                <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.3"/><path d="M3.5 5.5h4M5.5 3.5v4" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>
+                AI-Powered
+            </span>
+        </div>
+    </div>
+</header>
+
+<!-- MAIN LAYOUT -->
+<div class="page-layout">
+
+    <!-- LEFT COLUMN: FORM -->
+    <div class="col-main">
+        <div class="form-card">
+            <div class="form-card-header">
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 2C6 2 2 6 2 11s4 9 9 9 9-4 9-9-4-9-9-9z" stroke="#6366f1" stroke-width="1.5"/><path d="M7 11h8M11 7v8" stroke="#6366f1" stroke-width="1.8" stroke-linecap="round"/></svg>
+                <div>
+                    <h2 class="form-card-title">Comprehensive Health Assessment</h2>
+                    <p class="form-card-sub">Complete our evidence-based questionnaire for personalized hypertension risk evaluation and clinical recommendations</p>
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                            {% if category == 'error' %}
+                            <circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" stroke-width="1.3"/>
+                            <path d="M7.5 5v3M7.5 9.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            {% else %}
+                            <circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" stroke-width="1.3"/>
+                            <path d="M5 7.5l2 2 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            {% endif %}
+                        </svg>
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- RESULT DISPLAY -->
+            {% if prediction_text %}
+            <div class="result-box" style="--rc: {{ result_color }}">
+                <div class="result-top">
+                    <div class="result-icon-wrap">
+                        {% if 'NORMAL' in prediction_text %}
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="currentColor" stroke-width="2"/><path d="M7 11l3 3 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        {% elif 'CRISIS' in prediction_text %}
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3L20 19H2L11 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M11 9v4M11 15.5v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        {% else %}
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="currentColor" stroke-width="2"/><path d="M11 7v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        {% endif %}
+                    </div>
+                    <div class="result-title-area">
+                        <h3 class="result-stage-name">{{ recommendation.title }}</h3>
+                        <div class="result-meta">
+                            <span class="conf-text">Ai Confidence: <strong>{{ "%.0f"|format(confidence) }}%</strong></span>
+                            <span class="priority-chip priority-{{ recommendation.priority | lower | replace(' ', '-') }}">{{ recommendation.priority }}</span>
+                        </div>
+                        <p class="result-desc">{{ recommendation.description }}</p>
+                    </div>
+                </div>
+
+                <div class="recs-section">
+                    <div class="recs-title">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M4 7h6M4 4.5h6M4 9.5h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+                        Clinical Recommendations
+                    </div>
+                    <ul class="recs-list">
+                        {% for action in recommendation.actions %}
+                        <li class="rec-item">
+                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M4 6.5l2 2 3.5-3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            {{ action }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ASSESSMENT FORM -->
+            <form action="/predict" method="POST" class="assess-form">
+
+                <div class="field-row">
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="3.5" r="2.2" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 10c0-2.2 2-3.8 4.5-3.8S10.5 7.8 10.5 10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Gender</label>
+                        <select name="Gender" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Gender</option>
+                            <option value="Male" {% if form_data and form_data.get('Gender')=='Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if form_data and form_data.get('Gender')=='Female' %}selected{% endif %}>Female</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="2" width="10" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 1v2M8.5 1v2M1 5h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Age Group</label>
+                        <select name="Age" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Age Range</option>
+                            <option value="18-34" {% if form_data and form_data.get('Age')=='18-34' %}selected{% endif %}>18-34 years</option>
+                            <option value="35-50" {% if form_data and form_data.get('Age')=='35-50' %}selected{% endif %}>35-50 years</option>
+                            <option value="51-64" {% if form_data and form_data.get('Age')=='51-64' %}selected{% endif %}>51-64 years</option>
+                            <option value="65+" {% if form_data and form_data.get('Age')=='65+' %}selected{% endif %}>65+ years</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-row">
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="4.5" cy="3.5" r="2" stroke="currentColor" stroke-width="1.2"/><path d="M1.5 9.5c0-1.8 1.4-3 3-3M8 6.5c1.8 0 3 1.2 3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8.5" cy="3" r="1.5" stroke="currentColor" stroke-width="1.2"/></svg> Family History of Hypertension</label>
+                        <select name="History" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Option</option>
+                            <option value="Yes" {% if form_data and form_data.get('History')=='Yes' %}selected{% endif %}>Yes</option>
+                            <option value="No" {% if form_data and form_data.get('History')=='No' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1.5" y="1.5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M4 6l1.5 1.5 2.5-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Currently Under Medical Care</label>
+                        <select name="Patient" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Option</option>
+                            <option value="Yes" {% if form_data and form_data.get('Patient')=='Yes' %}selected{% endif %}>Yes</option>
+                            <option value="No" {% if form_data and form_data.get('Patient')=='No' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-row">
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="3.5" y="1" width="5" height="10" rx="2" stroke="currentColor" stroke-width="1.2"/><path d="M3.5 4.5h5" stroke="currentColor" stroke-width="1.1"/></svg> Currently Taking BP Medication</label>
+                        <select name="TakeMedication" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Option</option>
+                            <option value="Yes" {% if form_data and form_data.get('TakeMedication')=='Yes' %}selected{% endif %}>Yes</option>
+                            <option value="No" {% if form_data and form_data.get('TakeMedication')=='No' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5v2.5l1.5 1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Symptom Severity</label>
+                        <select name="Severity" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Severity</option>
+                            <option value="Mild" {% if form_data and form_data.get('Severity')=='Mild' %}selected{% endif %}>Mild</option>
+                            <option value="Moderate" {% if form_data and form_data.get('Severity')=='Moderate' %}selected{% endif %}>Moderate</option>
+                            <option value="Severe" {% if form_data and form_data.get('Severity')=='Severe' %}selected{% endif %}>Severe</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-row">
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6C2 3.8 4 2 6 2s4 1.8 4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="6" cy="9.5" r="1.2" fill="currentColor"/></svg> Shortness of Breath</label>
+                        <select name="BreathShortness" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Option</option>
+                            <option value="Yes" {% if form_data and form_data.get('BreathShortness')=='Yes' %}selected{% endif %}>Yes</option>
+                            <option value="No" {% if form_data and form_data.get('BreathShortness')=='No' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><ellipse cx="6" cy="6" rx="5" ry="3" stroke="currentColor" stroke-width="1.2"/><circle cx="6" cy="6" r="1.5" fill="currentColor"/></svg> Vision Changes</label>
+                        <select name="VisualChanges" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Option</option>
+                            <option value="Yes" {% if form_data and form_data.get('VisualChanges')=='Yes' %}selected{% endif %}>Yes</option>
+                            <option value="No" {% if form_data and form_data.get('VisualChanges')=='No' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-row">
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M4 6.5C4 8.5 5 10 6 10.5 7 10 8 8.5 8 6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Frequent Nosebleeds</label>
+                        <select name="NoseBleeding" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Option</option>
+                            <option value="Yes" {% if form_data and form_data.get('NoseBleeding')=='Yes' %}selected{% endif %}>Yes</option>
+                            <option value="No" {% if form_data and form_data.get('NoseBleeding')=='No' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.2"/><path d="M6 3.5V6l2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Time Since Diagnosis</label>
+                        <select name="WhenDiagnoused" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Time Period</option>
+                            <option value="<1 Year" {% if form_data and form_data.get('WhenDiagnoused')=='<1 Year' %}selected{% endif %}>Less than 1 Year</option>
+                            <option value="1 - 5 Years" {% if form_data and form_data.get('WhenDiagnoused')=='1 - 5 Years' %}selected{% endif %}>1 - 5 Years</option>
+                            <option value=">5 Years" {% if form_data and form_data.get('WhenDiagnoused')=='>5 Years' %}selected{% endif %}>More than 5 Years</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-row">
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1.5C3.5 1.5 1.5 3.5 1.5 6S3.5 10.5 6 10.5 10.5 8.5 10.5 6 8.5 1.5 6 1.5Z" stroke="#e11d48" stroke-width="1.2"/><path d="M6 4.5v3" stroke="#e11d48" stroke-width="1.5" stroke-linecap="round"/></svg> Systolic Pressure</label>
+                        <select name="Systolic" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Range</option>
+                            <option value="100 - 110" {% if form_data and form_data.get('Systolic')=='100 - 110' %}selected{% endif %}>100-110 mmHg (Normal)</option>
+                            <option value="111 - 120" {% if form_data and form_data.get('Systolic')=='111 - 120' %}selected{% endif %}>111-120 mmHg (Normal)</option>
+                            <option value="121 - 130" {% if form_data and form_data.get('Systolic')=='121 - 130' %}selected{% endif %}>121-130 mmHg (Stage 1)</option>
+                            <option value="130+" {% if form_data and form_data.get('Systolic')=='130+' %}selected{% endif %}>130+ mmHg (Stage 2)</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1.5C3.5 1.5 1.5 3.5 1.5 6S3.5 10.5 6 10.5 10.5 8.5 10.5 6 8.5 1.5 6 1.5Z" stroke="#e11d48" stroke-width="1.2"/><path d="M3.5 6h5" stroke="#e11d48" stroke-width="1.5" stroke-linecap="round"/></svg> Diastolic Pressure</label>
+                        <select name="Diastolic" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Range</option>
+                            <option value="70 - 80" {% if form_data and form_data.get('Diastolic')=='70 - 80' %}selected{% endif %}>70-80 mmHg (Normal)</option>
+                            <option value="81 - 90" {% if form_data and form_data.get('Diastolic')=='81 - 90' %}selected{% endif %}>81-90 mmHg (Stage 1)</option>
+                            <option value="91 - 100" {% if form_data and form_data.get('Diastolic')=='91 - 100' %}selected{% endif %}>91-100 mmHg (Stage 1)</option>
+                            <option value="100+" {% if form_data and form_data.get('Diastolic')=='100+' %}selected{% endif %}>100+ mmHg (Stage 2)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-row">
+                    <div class="field">
+                        <label class="flabel"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4.5C2 3.4 2.9 2.5 4 2.5h4c1.1 0 2 .9 2 2V4H2v.5Z" stroke="currentColor" stroke-width="1.1"/><rect x="2" y="4" width="8" height="5.5" rx="1" stroke="currentColor" stroke-width="1.1"/><path d="M4.5 6.5h3" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg> Heart-Healthy Diet</label>
+                        <select name="ControlledDiet" class="fselect" required>
+                            <option value="" disabled {% if not form_data %}selected{% endif %}>Select Option</option>
+                            <option value="Yes" {% if form_data and form_data.get('ControlledDiet')=='Yes' %}selected{% endif %}>Yes</option>
+                            <option value="No" {% if form_data and form_data.get('ControlledDiet')=='No' %}selected{% endif %}>No</option>
+                        </select>
+                    </div>
+                    <div class="field"></div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 2a5.5 5.5 0 100 11 5.5 5.5 0 000-11z" stroke="currentColor" stroke-width="1.5"/><path d="M5 7.5h5M7.5 5v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                    GENERATE RISK ASSESSMENT
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="col-side">
+        <div class="side-card">
+            <div class="side-card-title">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.3"/><path d="M7.5 6.5v4M7.5 5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                About This System
+            </div>
+            <p class="side-text">Our AI-powered platform analyzes multiple cardiovascular risk factors using advanced machine learning algorithms trained on clinical data.</p>
+            <ul class="side-list">
+                <li>Evidence-based risk assessment</li>
+                <li>Clinical guideline compliance</li>
+                <li>Personalized recommendations</li>
+                <li>Professional medical support</li>
+            </ul>
+        </div>
+
+        <div class="side-card">
+            <div class="side-card-title bp-title">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M7.5 2.5C5 2.5 2.5 4.8 2.5 7.5c0 1.8 1.3 3.5 3 4.2L7.5 13l2-1.3c1.7-.7 3-2.4 3-4.2 0-2.7-2.5-5-5-5z" fill="#fee2e2" stroke="#ef4444" stroke-width="1.2"/><path d="M5.5 7.5h4M7.5 5.5v4" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/></svg>
+                Blood Pressure Guidelines
+            </div>
+            <div class="bp-table">
+                <div class="bp-row"><span class="bp-label">Normal:</span><span class="bp-val bp-normal">&lt;120/80 mmHg</span></div>
+                <div class="bp-row"><span class="bp-label">Elevated:</span><span class="bp-val bp-elevated">120-129/&lt;80 mmHg</span></div>
+                <div class="bp-row"><span class="bp-label">Stage 1:</span><span class="bp-val bp-s1">130-139/80-89 mmHg</span></div>
+                <div class="bp-row"><span class="bp-label">Stage 2:</span><span class="bp-val bp-s2">≥140/90 mmHg</span></div>
+                <div class="bp-row"><span class="bp-label">Crisis:</span><span class="bp-val bp-crisis">&gt;180/120 mmHg</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-brand">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="0.5" y="0.5" width="12" height="12" rx="2.5" stroke="white" stroke-width="1" opacity="0.5"/><rect x="2.5" y="2.5" width="3.5" height="3.5" rx="0.8" fill="white" opacity="0.7"/><rect x="7" y="2.5" width="3.5" height="3.5" rx="0.8" fill="white" opacity="0.7"/><rect x="2.5" y="7" width="3.5" height="3.5" rx="0.8" fill="white" opacity="0.5"/></svg>
+        Smart Bridge Hyderabad
+    </div>
+    <div class="footer-copy">© Smart Bridge Hyderabad</div>
+</footer>
+
+<script>
+    window.addEventListener('load', () => {
+        const result = document.querySelector('.result-box');
+        if (result) setTimeout(() => result.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 200);
+    });
+</script>
+</body>
+</html>
